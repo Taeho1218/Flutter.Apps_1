@@ -6,13 +6,7 @@ class ImageSelect extends StatefulWidget{
   ImageSelect({Key? key}) : super(key: key);
 
   @override
-  State<ImageSelect> creatState() => _ImageSelectState();
-
-  @override
-  State<StatefulWidget> createState() {
-    // TODO: implement createState
-    throw UnimplementedError();
-  }
+  State<ImageSelect> createState() => _ImageSelectState();
 }
 
 class _ImageSelectState extends State<ImageSelect>{
@@ -20,13 +14,13 @@ class _ImageSelectState extends State<ImageSelect>{
   XFile? image;
 
   @override
-  void initstate() {
+  void initState() {
     super.initState();
   }
 
   @override
   void dispose() {
-    super.initState();
+    super.dispose();
   }
 
   void ImagePressed() async {
@@ -38,7 +32,11 @@ class _ImageSelectState extends State<ImageSelect>{
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    throw UnimplementedError();
+    return(
+   ImagePressed(),
+    );
+
   }
+
+
 }
