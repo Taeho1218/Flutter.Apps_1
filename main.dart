@@ -6,106 +6,45 @@ import 'package:image_picker/image_picker.dart';
 import 'result.dart';
 import 'dart:io';
 import 'imageselect.dart';
+
+
 void main() {
-  runApp(const MyApp());
-}
-// class OutlineText extends StatelessWidget{
-//   final Text child;
-//   final double strokeWidth;
-//   final Color? strokeColor;
-//   final TextOverflow? overflow;
-//
-//   const OutlineText(
-//       this.child, {
-//         super.key,
-//         this.strokeWidth = 2,
-//         this.strokeColor,
-//         this.overflow,
-//   });
-//   @override
-//   Widget build(BuildContext context) {
-//     return Stack(
-//       children: [
-//         Text(
-//       // textScaleFactor: child.textScaleFactor,
-//       child.data!,
-//       style: TextStyle(
-//         fontSize: child.style?.fontSize,
-//         fontWeight: child.style?.fontWeight,
-//         foreground: Paint()
-//           ..color = strokeColor ?? Theme.of(context).shadowColor
-//           ..style = PaintingStyle.stroke
-//           ..strokeWidth = strokeWidth,
-//           ),
-//           overflow: overflow,
-//         ),
-//       ],
-//     );
-//   }
-// }
-
-class ImageSelect extends StatefulWidget{
-  ImageSelect({Key? key}) : super(key: key);
-
-  @override
-  State<ImageSelect> creatState() => _ImageSelectState();
-
-  @override
-  State<StatefulWidget> createState() {
-    // TODO: implement createState
-    throw UnimplementedError();
-  }
+  runApp(MyApp());
 }
 
-
-class _ImageSelectState extends State<ImageSelect>{
-
-  XFile? image;
-
-  @override
-  void initstate() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.initState();
-  }
-
-  void ImagePressed() async {
-    image = await ImagePicker().pickImage(source: ImageSource.gallery);
-    setState(() {
-
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
-    throw UnimplementedError();
-  }
-}
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: MyHomePage(), //  여기서 context를 보장 -> navigate 사용
+      home: MyHomePage(),
     );
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+
+class _MyHomePageState extends State<MyHomePage> {
+  File? selectedImage;
+  void pickImage()async{
+    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => ImageSelect()));
+    if (result != null && result is File) {
+      setState(() {
+        selectedImage = result;
+      });
+    }
+  }
 
 
   @override
+
+
   Widget build(BuildContext context) {
-    // return  ScreenUtilInit(
-    //   designSize:  const Size(602, 690),
-    //   minTextAdapt: true,
-    //   splitScreenMode: true,
-    //   builder: (_, child){
         return MaterialApp(
             home: Scaffold(
               body: Container(
@@ -124,27 +63,33 @@ class MyHomePage extends StatelessWidget {
                                       Column(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            // GestureDetector(
-                                            //   onTap: () {
-                                            //     print("이미지를 눌렀습니다");
-                                            //     Navigator.push(context,
-                                            //         MaterialPageRoute(builder: (context)=>ImageSelect() ) );
-                                            //
-                                            //     child:
-                                            //     Image.asset(
-                                            //       'assets/images/img_mainSnake.png',
-                                            //       width: 50,
-                                            //       height: 50,
-                                            //       fit: BoxFit.cover,
-                                            //     );
-                                            //   },
-                                            // ),
-                                            Image.asset(
-                                              'assets/images/img_mainSnake.png',
-                                              width: 350,
-                                              height: 450,
-                                              fit: BoxFit.cover,
-                                            ),
+                                            InkWell(
+                                              onTap: (){
+                                                print("이미지 선택페이지로 이동");
+                                                // _ImageSelectState();
+                                                Navigator.push(context,MaterialPageRoute(builder: (context) =>  const ImageSelect()));
+                                                // ImagePressed(); 나의 저장공간에서 이미지를 불러오는 위젯을 연결해야함.
+                                              },
+                                              child:   Stack(
+                                                children: [
+                                                Image.asset(
+                                                'assets/images/img_mainSnake.png',
+                                                width: 350,
+                                                height: 450,
+                                                fit: BoxFit.cover,),
+                                                  Positioned(
+                                                      top:275 ,
+                                                      left: 75,
+                                                      child:
+                                                      selectedImage != null
+                                                       ? Image.file(selectedImage! ,width: 50, height: 50,)
+                                                       : Image.asset('assets/images/img_mainSnake.png',width: 50, height: 50,)   
+
+                                                  ),
+                                                ],
+                                              ),
+                                              ),
+
 
                                             SizedBox(height: 50,),
                                             ElevatedButton(
@@ -168,4 +113,5 @@ class MyHomePage extends StatelessWidget {
     //   },
     // );
   }
+
 }
