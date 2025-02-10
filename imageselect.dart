@@ -31,9 +31,11 @@ class _ImageSelectState extends State<ImageSelect>{
       print("페이지 넘어와서 이미지 선택 ");
       if (pickedImage != null) {
         image = pickedImage;
+        File imageFile = File(pickedImage.path);
         print("이미지가 선택되었습니다");
-        Navigator.pop(context, File(image as String));
+        Navigator.pop(context,imageFile);
        Navigator.push(context,MaterialPageRoute(builder: (context) =>  MyHomePage()));
+       print(" 이미지가 메인으로 전송된 후 메인페이지로 돌아감");
       } else {
           print("이미지 선택이 취소됌");
         };
