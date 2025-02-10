@@ -22,6 +22,7 @@ class FinalWeb extends StatelessWidget {
                 width: 300,
                 height:300,
                 fit: BoxFit.cover,), //닮은 꼴 이미지 등록
+
               SizedBox(height: 50,),
               Center(
                 child:
@@ -50,5 +51,7 @@ class FinalWeb extends StatelessWidget {
 
 
     );
+  }
+}
   }
 }
