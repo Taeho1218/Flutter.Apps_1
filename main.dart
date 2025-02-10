@@ -31,14 +31,20 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   File? selectedImage;
+
   void pickImage()async{
     final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => ImageSelect()));
     if (result != null && result is File) {
       setState(() {
         selectedImage = result;
+        print("이미지 메인에 저장 완료");
       });
     }
   }
+
+  // void  userImage(){
+  //   유저의 이미지를 1초마다 비교해서 이미지를 산출하도록 하기
+  // }
 
 
   @override
@@ -72,6 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                               },
                                               child:   Stack(
                                                 children: [
+
                                                 Image.asset(
                                                 'assets/images/img_mainSnake.png',
                                                 width: 350,
@@ -83,7 +90,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                                       child:
                                                       selectedImage != null
                                                        ? Image.file(selectedImage! ,width: 50, height: 50,)
-                                                       : Image.asset('assets/images/img_mainSnake.png',width: 50, height: 50,)   
+                                                       : Image.asset('assets/images/img_mainSnake.png',width: 50, height: 50, )
+                                            //           if(selectedImage != null){
+                                            //             Image.file(selectedImage , width : 50, height: 50,)
+                                            // }else{
+                                            //             Image.asset('assets/images/img_mainSnake.png',width: 50, height: 50,)
+                                            // };
 
                                                   ),
                                                 ],
