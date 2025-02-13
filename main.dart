@@ -34,20 +34,34 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
 
   File? selectedImage;
+  Image? finalImage;
   void pickImage()async{
-    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => ImageSelect()));
+   final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => ImageSelect()));
     if (result != null && result is File) {
-      setState(() {
+
         selectedImage = result;
-      });
+        print(selectedImage,);
+        print("사진파일 이동완료",);
+
     }
+    else{print("이미지 메인에전송 안됌");};
   }
   void TimeImage(){
     Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-        pickImage();
-        print("1초마다 비교중");
-      });
+      // setState(() {
+      //
+      // });
+     // pickImage();
+      //selectedImage가 null인지 확인해야함, ->  상태에 따라 보여주는 사진을 변경
+      if(selectedImage != null){
+        finalImage = Image.file(selectedImage! ,width: 50, height: 50,);
+        print("사용자 선택이미지로 변환");
+      }
+      else{
+        finalImage = Image.asset('assets/images/img_mainSnake.png',width: 50, height: 50,);
+        print("사용자의 선택 이미지 없음");
+      };
+      print("1초마다 비교중");
     });
   }
 
@@ -75,10 +89,13 @@ class _MyHomePageState extends State<MyHomePage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           InkWell(
-                            onTap: (){
+                            onTap: () async {
                               print("이미지 선택페이지로 이동");
+                              TimeImage();
                               // _ImageSelectState();
-                              Navigator.push(context,MaterialPageRoute(builder: (context) =>  const ImageSelect()));
+                              pickImage();
+                              //final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => ImageSelect()));
+                              //Navigator.push(context,MaterialPageRoute(builder: (context) =>  const ImageSelect()));
                               // ImagePressed(); 나의 저장공간에서 이미지를 불러오는 위젯을 연결해야함.
                             },
                             child:   Stack(
@@ -96,6 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                         ? Image.file(selectedImage! ,width: 50, height: 50,)
                                         : Image.asset('assets/images/img_mainSnake.png',width: 50, height: 50,)
 
+
                                 ),
                               ],
                             ),
@@ -107,7 +125,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               style: ElevatedButton.styleFrom(minimumSize: Size(200, 50) ),
                               onPressed: (){
                                 print("FianlWeb 으로 이동 ");
-                                TimeImage();
+
                                 Navigator.push(context, MaterialPageRoute(builder: (context) => const FinalWeb()  ) );
                               }, //여기가 문제 해걀해야함
                               child: Text("결과 보기")),
