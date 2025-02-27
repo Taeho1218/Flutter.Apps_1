@@ -34,7 +34,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
 
   File? selectedImage;
-  Image? finalImage;
+  File? finalImage;
   void pickImage()async{
    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => ImageSelect()));
     if (result != null && result is File) {
@@ -46,24 +46,28 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     else{print("이미지 메인에전송 안됌");};
   }
-  void TimeImage(){
-    Timer.periodic(Duration(seconds: 1), (timer) {
-      // setState(() {
-      //
-      // });
-     // pickImage();
-      //selectedImage가 null인지 확인해야함, ->  상태에 따라 보여주는 사진을 변경
+
+  void changeImage(){
+    setState(() {
       if(selectedImage != null){
-        finalImage = Image.file(selectedImage! ,width: 50, height: 50,);
+       // finalImage = '${documentDirectory.path}/downloaded_image_${DateTime.now().toString()}.jpg';
+        Image.file(selectedImage!, width: 50, height: 50);
         print("사용자 선택이미지로 변환");
       }
       else{
-        finalImage = Image.asset('assets/images/img_mainSnake.png',width: 50, height: 50,);
+        // finalImage = Image.asset('assets/images/img_mainSnake.png',);
         print("사용자의 선택 이미지 없음");
       };
+  });
+  }
+
+  void TimeImage(){
+    Timer.periodic(Duration(seconds: 1), (timer) {
+      changeImage();
       print("1초마다 비교중");
     });
   }
+
 
 
   @override
@@ -88,15 +92,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+
                           InkWell(
                             onTap: () async {
                               print("이미지 선택페이지로 이동");
                               TimeImage();
-                              // _ImageSelectState();
                               pickImage();
-                              //final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => ImageSelect()));
-                              //Navigator.push(context,MaterialPageRoute(builder: (context) =>  const ImageSelect()));
-                              // ImagePressed(); 나의 저장공간에서 이미지를 불러오는 위젯을 연결해야함.
                             },
                             child:   Stack(
                               children: [
@@ -106,12 +107,26 @@ class _MyHomePageState extends State<MyHomePage> {
                                   height: 450,
                                   fit: BoxFit.cover,),
                                 Positioned(
-                                    top:275 ,
-                                    left: 75,
+                                    top:265 ,
+                                    left: 62,
                                     child:
-                                    selectedImage != null
-                                        ? Image.file(selectedImage! ,width: 50, height: 50,)
-                                        : Image.asset('assets/images/img_mainSnake.png',width: 50, height: 50,)
+                                     selectedImage != null
+                                         ? (() {
+                                             // pickImage();
+                                             // TimeImage();
+                                          //  return Image.file(selectedImage!, width: 50, height: 50);
+                                       print('파일 이미지 들어옴');
+                                            return Image.asset('assets/images/img_mainSnake.png', width: 50,height: 50,);
+
+                                             // return setState(() {
+                                             //    //변경된 사진 가져오기
+                                             // });
+                                             // return Image.asset('assets/images/img_mainSnake.png', width: 50, height: 50,);
+                                                  })()
+                                         : (() {
+                                            print('기본 이미지');
+                                            return Image.asset('assets/images/dog.test.jpg', width: 70, height: 70);
+                                            })(),
 
 
                                 ),
