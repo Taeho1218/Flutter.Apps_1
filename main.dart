@@ -33,12 +33,12 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  File? selectedImage;
+  File? result;
   void pickImage()async{
-    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => ImageSelect()));
-    if (result != null && result is File) {
+    final File? selectedImage = await Navigator.push(context, MaterialPageRoute(builder:(context)=> ImageSelect()),);
+    if (selectedImage != null) {
       setState(() {
-        selectedImage = result;
+        result = selectedImage;  // ✅ 이미지 저장 후 화면 갱신
       });
     }
   }
@@ -77,9 +77,10 @@ class _MyHomePageState extends State<MyHomePage> {
                           InkWell(
                             onTap: (){
                               print("이미지 선택페이지로 이동");
+                              pickImage();
                               // TimeImage();
                               // _ImageSelectState();
-                              Navigator.push(context,MaterialPageRoute(builder: (context) =>  const ImageSelect()));
+                              // Navigator.push(context,MaterialPageRoute(builder: (context) =>  const ImageSelect()));
                               // ImagePressed(); 나의 저장공간에서 이미지를 불러오는 위젯을 연결해야함.
                             },
                             child:   Stack(
@@ -93,8 +94,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                     top:275 ,
                                     left: 75,
                                     child:
-                                    selectedImage != null
-                                        ? Image.file(selectedImage! ,width: 50, height: 50,)
+                                    result != null
+                                        ? Image.file(result! ,width: 50, height: 50,)
                                         : Image.asset('assets/images/img_mainSnake.png',width: 50, height: 50,)
 
                                 ),
