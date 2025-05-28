@@ -1,0 +1,86 @@
+<!-- assets/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Teachable Machine Classifier</title>
+
+    <!-- ✅ 최신 안정 버전의 TensorFlow.js (브라우저용) -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.13.0/dist/tf.min.js"></script>
+
+    <!-- ✅ Teachable Machine 이미지 모델 라이브러리 (브라우저용 명시 버전) -->
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.4/dist/teachablemachine-image.min.js"></script>
+
+    <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f5f5f5;
+      text-align: center;
+    }
+    img {
+      width: 200px;
+      height: auto;
+      margin-top: 10px;
+    }
+    #result {
+      margin-top: 16px;
+      font-size: 18px;
+      color: #333;
+    }
+  </style>
+</head>
+
+<body>
+<h2>Teachable Machine 예측</h2>
+<img id="preview" src="" alt="미리보기 이미지" />
+<div id="result">예측 결과 대기 중...</div>
+
+<script>
+  // ✅ Teachable Machine 모델 경로
+    const MODEL_URL = "https://teachablemachine.withgoogle.com/models/tTrJVw9oX/";
+
+    let model = null; // 모델을 전역에 저장하여 재사용
+
+    tf.setBackend('cpu').then(() => tf.ready()).then(() => {
+    console.log("✅ TensorFlow.js is ready with CPU backend");
+  }).catch(err => {
+    console.error("❌ TensorFlow.js 초기화 오류:", err);
+  });
+
+
+    // ✅ Flutter에서 호출할 함수 (Base64 이미지 전달됨)
+    async function loadImageFromFlutter(base64Image) {
+      const imgElement = document.getElementById("preview");
+      imgElement.src = base64Image;
+
+      // 최초 1회만 모델 로딩
+      if (!model) {
+        model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
+      }
+
+      // 이미지가 로딩 완료된 후 예측 수행
+      imgElement.onload = async () => {
+        const prediction = await model.predict(imgElement);
+
+        // 가장 높은 확률의 예측값 추출
+        let best = prediction[0];
+        for (let i = 1; i < prediction.length; i++) {
+          if (prediction[i].probability > best.probability) {
+            best = prediction[i];
+          }
+        }
+
+        // 결과 출력 및 Flutter에 전달
+        const resultText = best.className + ": " + best.probability.toFixed(2);
+        document.getElementById("result").innerText = resultText;
+
+        // ✅ Flutter로 메시지 보내기 (WebViewController에 연결된 JavaScriptChannel)
+        if (window.ResultChannel) {
+          ResultChannel.postMessage(resultText);
+        }
+      };
+    }
+  </script>
+</body>
+</html>
