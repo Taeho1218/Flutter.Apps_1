@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 class FinalWeb extends StatelessWidget {
   const FinalWeb({Key? key}) : super(key: key);
+  final File imageFile;
+  const FinalWeb({Key? key, required this.imageFile}) : super(key: key);
   final list<map<String,String>> animal_result = [
     {
       'name': '쥐띠',
@@ -105,7 +107,7 @@ class FinalWeb extends StatelessWidget {
       if(받은 결과값의 동물이름 == animal_result[i]['name']){
         animal_name = animal_result[i][name];
         animal_story = animal_result[i][story];
-        animal_image = 이미지 동물 이름 ;
+        animal_image = 'assest/images/$animal_name.png' ;
       }
       }
     }
@@ -125,7 +127,7 @@ class FinalWeb extends StatelessWidget {
             child:Column(
               children: [
                 SizedBox(height: 50,),
-                Image.asset('assets/images/img_mainSnake.png',
+                Image.asset(animal_image,
                   width: 300,
                   height:300,
                   fit: BoxFit.cover,), //닮은 꼴 이미지 등록
@@ -136,7 +138,7 @@ class FinalWeb extends StatelessWidget {
                     children: [
                       SizedBox(width: 120,),
 
-                      Image.asset('assets/images/img_mainSnake.png',
+                      Image.file(imageFile! ,
                         width: 50,
                         height: 50,
                         fit: BoxFit.cover,),//선택한 이미지들어갈 화면
