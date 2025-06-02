@@ -48,7 +48,7 @@
     console.error("❌ TensorFlow.js 초기화 오류:", err);
   });
 
-
+    console.log(base64Image);
     // ✅ Flutter에서 호출할 함수 (Base64 이미지 전달됨)
     async function loadImageFromFlutter(base64Image) {
       const imgElement = document.getElementById("preview");
@@ -78,6 +78,8 @@
         // ✅ Flutter로 메시지 보내기 (WebViewController에 연결된 JavaScriptChannel)
         if (window.ResultChannel) {
           ResultChannel.postMessage(resultText);
+        }else{
+            alert('ResultChannel 없음');
         }
       };
     }
