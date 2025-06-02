@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'result.dart';
 import 'dart:io';
 import 'imageselect.dart';
-
+import 'test_result.dart';
 
 void main() {
   runApp(MyApp());
@@ -110,7 +110,14 @@ class _MyHomePageState extends State<MyHomePage> {
                               onPressed: (){
                                 print("FianlWeb 으로 이동 ");
                                 // TimeImage();
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => const FinalWeb()  ) );
+                                if (result != null) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => HtmlClassifierPage(imageFile: result!),
+                                    ),
+                                  );
+                                }
                               }, //여기가 문제 해걀해야함
                               child: Text("결과 보기")),
                         ]
