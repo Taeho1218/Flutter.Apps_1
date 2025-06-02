@@ -17,6 +17,7 @@ class _HtmlClassifierPageState extends State<HtmlClassifierPage> {
   late final WebViewController _webViewController;
   String prediction = '분류 중...';
 
+
   @override
   void initState() {
     super.initState();
@@ -52,9 +53,17 @@ class _HtmlClassifierPageState extends State<HtmlClassifierPage> {
           // 이미지 전달 준비
           final bytes = await widget.imageFile.readAsBytes();
           final base64Image = base64Encode(bytes);
-          final jsCode =
-              "loadImageFromFlutter('data:image/jpeg;base64,$base64Image')";
-          await _webViewController.runJavaScript(jsCode);
+          // final jsCode =
+          //     "loadImageFromFlutter('data:image/jpeg;base64,$base64Image')";
+          // await _webViewController.runJavaScript(jsCode);
+          // 줄바꿈 제거 (JS 에러 방지)
+          final cleanBase64 = base64Image.replaceAll('\n', '').replaceAll('\r', '');
+
+          // JavaScript 함수 호출 (이미지 전달)
+          final jsCommand = 'loadImageFromFlutter("data:image/jpeg;base64,$cleanBase64");';
+
+          print("✅ JS 호출 준비됨: $jsCommand");
+          print(base64Image);
         },
       ),
     );
