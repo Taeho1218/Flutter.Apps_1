@@ -5,9 +5,12 @@ import 'dart:io';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import 'main.dart';
+
 class FinalWeb extends StatefulWidget {
   final File imageFile;
-  FinalWeb({super.key, required this.imageFile});
+  final String final_result;
+  FinalWeb({super.key, required this.final_result, required this.imageFile});
   final List<Map<String,String>> animal_result = [
     {
       'name': '쥐띠',
@@ -98,7 +101,37 @@ class FinalWeb extends StatefulWidget {
 - 건강: 체중 관리와 식습관 조절이 중요해요. 야식 줄이기! (하지만 맛있는 건 참기 힘들겠죠? 😆)
 - 인간관계: 가까운 사람들과의 관계를 더욱 돈독히 해야 하는 시기! '오래된 친구일수록 더 챙겨야 할 때!'
 '''
-    }
+    },
+    {
+      'name': '개띠',
+      'story': '''
+믿음직하고 성실한 하루, 하지만 감정 기복 조심!
+- 직장/사업: 맡은 일은 꼼꼼하게, 동료들 신뢰도 쑥쑥! 단, 너무 오지랖 부리진 말아요.
+- 금전: 지출은 평범하지만, 한 번에 확 질러버릴 유혹이 있을 듯! 충동구매 주의.
+- 건강: 피곤이 쌓여 허리, 어깨 뻐근. 스트레칭과 가벼운 산책 추천.
+- 인간관계: 오해로 인한 작은 말다툼 가능성. 감정 조절이 포인트!
+'''
+    },
+    {
+      'name': '닭띠',
+      'story': '''
+촉이 날카로운 하루! 직감 믿어도 괜찮아요.
+- 직장/사업: 평소엔 망설이던 일도 오늘은 과감하게 도전해볼 만! 예상보다 좋은 결과.
+- 금전: 작은 재물운! 잊고 있던 돈이나 쿠폰 발견 운도 있어요.
+- 건강: 컨디션 최상, 단 밤 늦게까지 폰 보면 숙면 방해됨. 일찍 꺼두기!
+- 인간관계: 평소 연락 없던 친구에게 연락 와서 기분 좋아질 수도.
+'''
+    },
+    {
+      'name': '원숭이띠',
+      'story': '''
+센스와 재치로 분위기 메이커! 하지만 말 실수 조심.
+- 직장/사업: 아이디어 빛나는 날! 회의에서 의견 내면 칭찬 받을 확률 높음.
+- 금전: 수입보다 지출이 많을 수 있으니, 가계부 점검.
+- 건강: 무릎, 관절 주의. 너무 오래 앉아있지 말고 중간중간 움직이기.
+- 인간관계: 장난이 과하면 독. 상대 기분도 슬쩍 체크해가며 농담하기.
+'''
+    },
   ];
   @override
 
@@ -111,68 +144,28 @@ class _FinalWebState extends State<FinalWeb> {
   late String animal_name= "";
   late String animal_story= "";
   late String animal_image= "";
-  late final WebViewController _webViewController;
-  String prediction = '분류 중...';
-  late String final_result = prediction+'띠';
+
+
 
 
   @override
   void initState() {
     super.initState();
-    _webViewController = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..addJavaScriptChannel(
-        'ResultChannel',
-        onMessageReceived: (JavaScriptMessage msg) {
-          setState(() {
-            prediction = msg.message;
-            show_ment();
-          });
-          print("✅prediction=,$prediction");
-        },
-      );
-
-    _loadHtml();
+    show_ment();
   }
 
   void show_ment(){
     for(int i=0; i<widget.animal_result.length;i++){
-      if(final_result == widget.animal_result[i]['name']){
+      if(widget.final_result == widget.animal_result[i]['name']){
         animal_name = widget.animal_result[i]['name']!;
         animal_story = widget.animal_result[i]['story']!;
         animal_image = 'assets/images/$animal_name.jpg' ;
       }else{
-        print(final_result);
+        print(widget.final_result);
       }
     }
   }
 
-  Future<void> _loadHtml() async {
-    final htmlString = await rootBundle.loadString('assets/index.html');
-    _webViewController.loadHtmlString(htmlString);
-
-    _webViewController.setNavigationDelegate(
-      NavigationDelegate(
-        onPageFinished: (url) async {
-          // 이미지 전달 준비
-          final bytes = await widget.imageFile.readAsBytes();
-          final base64Image = base64Encode(bytes);
-          final jsCode =
-              "loadImageFromFlutter('data:image/jpeg;base64,$base64Image')";
-
-          // 줄바꿈 제거 (JS 에러 방지)
-          final cleanBase64 = base64Image.replaceAll('\n', '').replaceAll('\r', '');
-
-          // JavaScript 함수 호출 (이미지 전달)
-          final jsCommand = 'loadImageFromFlutter("data:image/jpeg;base64,$cleanBase64");';
-
-          print("✅ JS 호출 준비됨: $jsCommand");
-          await _webViewController.runJavaScript(jsCommand);
-          print("✅ base64 길이: ${base64Image.length}");
-        },
-      ),
-    );
-  }
 
   @override
 
@@ -184,7 +177,7 @@ class _FinalWebState extends State<FinalWeb> {
           child: SingleChildScrollView(
             child:Column(
               children: [
-                SizedBox(height: 50,),
+                SizedBox(height: 40,),
                 Image.asset(animal_image,
                   width: 300,
                   height:300,
@@ -205,8 +198,36 @@ class _FinalWebState extends State<FinalWeb> {
                   ),
                 ),
 
-                SizedBox(height: 50,),
-                Text(animal_story)
+                SizedBox(height: 40,),
+                Text(animal_story),
+                SizedBox(height: 10,),
+                ElevatedButton(
+                    style: ElevatedButton.styleFrom(minimumSize: Size(200, 50) ),
+                    onPressed: (){
+                      print("FianlWeb 으로 이동 ");
+                        showDialog(context: context, builder: (BuildContext ctx){
+                          return AlertDialog(
+                            content: Text('처음 화면으로 돌아갈까요?'),
+                            actions: [
+                              Center(
+                                child: FloatingActionButton(
+                                    child: Text('네'),
+                                    onPressed:(){
+                                      Navigator.push(context, MaterialPageRoute(
+                                        builder: (context) {
+                                          return MyHomePage();
+                                        },
+                                      ));
+                                    }
+                                ),
+
+                              )
+                            ],
+                          );
+                        });
+
+                    },
+                    child: Text("다시 하기")),
 
               ],
             ) ,
