@@ -9,6 +9,7 @@ import 'dart:io';
 import 'imageselect.dart';
 import 'test_result.dart';
 
+
 void main() {
   runApp(MyApp());
 }
@@ -17,6 +18,7 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
+
   Widget build(BuildContext context) {
     return MaterialApp(
       home: MyHomePage(),
@@ -66,7 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       width: 400, height: 100,
                       child:                     Container(
                         child:Center(
-                          child: Text("사이트 이름", style: TextStyle(fontSize: 40),),
+                          child: Text("닮은꼴 운세 뽑기", style: TextStyle(fontSize: 40),),
                         ),
                       ),
 
@@ -78,25 +80,21 @@ class _MyHomePageState extends State<MyHomePage> {
                             onTap: (){
                               print("이미지 선택페이지로 이동");
                               pickImage();
-                              // TimeImage();
-                              // _ImageSelectState();
-                              // Navigator.push(context,MaterialPageRoute(builder: (context) =>  const ImageSelect()));
-                              // ImagePressed(); 나의 저장공간에서 이미지를 불러오는 위젯을 연결해야함.
-                            },
+                              },
                             child:   Stack(
                               children: [
                                 Image.asset(
-                                  'assets/images/img_mainSnake.png',
+                                  'assets/images/img_mainSnake.jpg',
                                   width: 350,
                                   height: 450,
                                   fit: BoxFit.cover,),
                                 Positioned(
-                                    top:275 ,
-                                    left: 75,
+                                    top:250 ,
+                                    left: 100,
                                     child:
                                     result != null
-                                        ? Image.file(result! ,width: 50, height: 50,)
-                                        : Image.asset('assets/images/img_mainSnake.png',width: 50, height: 50,)
+                                        ? Image.file(result! ,width: 100, height: 100,)
+                                        : Image.asset('assets/images/img_mainSnake.jpg',width: 100, height: 100,)
 
                                 ),
                               ],
@@ -109,16 +107,33 @@ class _MyHomePageState extends State<MyHomePage> {
                               style: ElevatedButton.styleFrom(minimumSize: Size(200, 50) ),
                               onPressed: (){
                                 print("FianlWeb 으로 이동 ");
-                                // TimeImage();
                                 if (result != null) {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => HtmlClassifierPage(imageFile: result!),
+                                      // builder: (context) => HtmlClassifierPage(imageFile: result!), // ✅ ! 사용으로 null 아님 보장, 싫험 페이지
+                                      builder: (context) => FinalWeb(imageFile: result!),
                                     ),
                                   );
+                                }else{
+                                  showDialog(context: context, builder: (BuildContext ctx){
+                                    return AlertDialog(
+                                      content: Text('사진을 선택해 주세요'),
+                                      actions: [
+                                        Center(
+                                          child: FloatingActionButton(
+                                              child: Text('네'),
+                                              onPressed:(){
+                                                Navigator.of(context).pop();
+                                              }
+                                          ),
+
+                                        )
+                                      ],
+                                    );
+                                  });
                                 }
-                              }, //여기가 문제 해걀해야함
+                              },
                               child: Text("결과 보기")),
                         ]
                     ),
