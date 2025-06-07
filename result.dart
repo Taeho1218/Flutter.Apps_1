@@ -1,12 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
-
-class FinalWeb extends StatelessWidget {
-  const FinalWeb({Key? key}) : super(key: key);
+class FinalWeb extends StatefulWidget {
   final File imageFile;
-  const FinalWeb({Key? key, required this.imageFile}) : super(key: key);
-  final list<map<String,String>> animal_result = [
+  FinalWeb({super.key, required this.imageFile});
+  final List<Map<String,String>> animal_result = [
     {
       'name': '쥐띠',
       'story': '''
@@ -98,30 +100,86 @@ class FinalWeb extends StatelessWidget {
 '''
     }
   ];
-  String animal_name;
-  String animal_story;
-  Image animal_image;
-  // 인공지능으로 도출한 결과 -> 배열(animal_result)에 입력 -> show_ment함수에서 반복문을 통해 배열의 인덱스 값에 따라 코멘트 출력 ->
+  @override
+
+  State<FinalWeb> createState() => _FinalWebState();
+
+}
+
+class _FinalWebState extends State<FinalWeb> {
+  final String exaple_result = '말띠';
+  late String animal_name= "";
+  late String animal_story= "";
+  late String animal_image= "";
+  late final WebViewController _webViewController;
+  String prediction = '분류 중...';
+  late String final_result = prediction+'띠';
+
+
+  @override
+  void initState() {
+    super.initState();
+    _webViewController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..addJavaScriptChannel(
+        'ResultChannel',
+        onMessageReceived: (JavaScriptMessage msg) {
+          setState(() {
+            prediction = msg.message;
+            show_ment();
+          });
+          print("✅prediction=,$prediction");
+        },
+      );
+
+    _loadHtml();
+  }
+
   void show_ment(){
-    for(int i=0; i<animal_result.length;i++){
-      if(받은 결과값의 동물이름 == animal_result[i]['name']){
-        animal_name = animal_result[i][name];
-        animal_story = animal_result[i][story];
-        animal_image = 'assest/images/$animal_name.png' ;
-      }
+    for(int i=0; i<widget.animal_result.length;i++){
+      if(final_result == widget.animal_result[i]['name']){
+        animal_name = widget.animal_result[i]['name']!;
+        animal_story = widget.animal_result[i]['story']!;
+        animal_image = 'assets/images/$animal_name.jpg' ;
+      }else{
+        print(final_result);
       }
     }
+  }
 
+  Future<void> _loadHtml() async {
+    final htmlString = await rootBundle.loadString('assets/index.html');
+    _webViewController.loadHtmlString(htmlString);
 
+    _webViewController.setNavigationDelegate(
+      NavigationDelegate(
+        onPageFinished: (url) async {
+          // 이미지 전달 준비
+          final bytes = await widget.imageFile.readAsBytes();
+          final base64Image = base64Encode(bytes);
+          final jsCode =
+              "loadImageFromFlutter('data:image/jpeg;base64,$base64Image')";
+
+          // 줄바꿈 제거 (JS 에러 방지)
+          final cleanBase64 = base64Image.replaceAll('\n', '').replaceAll('\r', '');
+
+          // JavaScript 함수 호출 (이미지 전달)
+          final jsCommand = 'loadImageFromFlutter("data:image/jpeg;base64,$cleanBase64");';
+
+          print("✅ JS 호출 준비됨: $jsCommand");
+          await _webViewController.runJavaScript(jsCommand);
+          print("✅ base64 길이: ${base64Image.length}");
+        },
+      ),
+    );
+  }
 
   @override
 
   Widget build(BuildContext context){
     return MaterialApp(
       home: Scaffold(
-        // appBar: AppBar(
-        //   title: Text("ResultPage"),
-        // ),
+
         body: Container(
           child: SingleChildScrollView(
             child:Column(
@@ -131,14 +189,14 @@ class FinalWeb extends StatelessWidget {
                   width: 300,
                   height:300,
                   fit: BoxFit.cover,), //닮은 꼴 이미지 등록
-                SizedBox(height: 50,),
+                SizedBox(height: 20,),
                 Center(
                   child:
                   Row(
                     children: [
-                      SizedBox(width: 120,),
+                      SizedBox(width: 150,),
 
-                      Image.file(imageFile! ,
+                      Image.file(widget.imageFile! ,
                         width: 50,
                         height: 50,
                         fit: BoxFit.cover,),//선택한 이미지들어갈 화면
