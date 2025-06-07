@@ -48,41 +48,43 @@
     console.error("❌ TensorFlow.js 초기화 오류:", err);
   });
 
-    console.log(base64Image);
     // ✅ Flutter에서 호출할 함수 (Base64 이미지 전달됨)
-    async function loadImageFromFlutter(base64Image) {
-      const imgElement = document.getElementById("preview");
-      imgElement.src = base64Image;
+async function loadImageFromFlutter(base64Image) {
+  const imgElement = document.getElementById("preview");
 
-      // 최초 1회만 모델 로딩
-      if (!model) {
-        model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
+  // 모델부터 로드 (없으면)
+  if (!model) {
+    console.log("📦 모델 로딩 시작...");
+    model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
+    console.log("📦 모델 로딩 완료!");
+  }
+
+  // onload 먼저 등록
+  imgElement.onload = async () => {
+    console.log("🖼️ 이미지 로딩 완료, 예측 시작...");
+    const prediction = await model.predict(imgElement);
+
+    let best = prediction[0];
+    for (let i = 1; i < prediction.length; i++) {
+      if (prediction[i].probability > best.probability) {
+        best = prediction[i];
       }
-
-      // 이미지가 로딩 완료된 후 예측 수행
-      imgElement.onload = async () => {
-        const prediction = await model.predict(imgElement);
-
-        // 가장 높은 확률의 예측값 추출
-        let best = prediction[0];
-        for (let i = 1; i < prediction.length; i++) {
-          if (prediction[i].probability > best.probability) {
-            best = prediction[i];
-          }
-        }
-
-        // 결과 출력 및 Flutter에 전달
-        const resultText = best.className + ": " + best.probability.toFixed(2);
-        document.getElementById("result").innerText = resultText;
-
-        // ✅ Flutter로 메시지 보내기 (WebViewController에 연결된 JavaScriptChannel)
-        if (window.ResultChannel) {
-          ResultChannel.postMessage(resultText);
-        }else{
-            alert('ResultChannel 없음');
-        }
-      };
     }
+     const resultT = best.className + ": " + best.probability.toFixed(2);
+    const resultText = best.className;
+    document.getElementById("result").innerText = resultText;
+    console.log("✅resultText", resultText);
+
+    if (window.ResultChannel) {
+      ResultChannel.postMessage(resultText);
+    } else {
+      alert("ResultChannel 없음");
+    }
+  };
+
+  // 그리고 나서 이미지 src 설정
+  imgElement.src = base64Image;
+}
   </script>
 </body>
 </html>
