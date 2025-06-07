@@ -2,12 +2,16 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'result.dart';
 import 'dart:io';
 import 'imageselect.dart';
 import 'test_result.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 
 void main() {
@@ -27,6 +31,8 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
+
+
   @override
   _MyHomePageState createState() => _MyHomePageState();
 
@@ -35,7 +41,39 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  File? result;
+   File? result ;
+  late final WebViewController _webViewController;
+  String prediction = '분류 중...';
+  late String name = prediction+'띠';
+
+  @override
+  void initState() {
+    super.initState();
+    _webViewController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..addJavaScriptChannel(
+        'ResultChannel',
+        onMessageReceived: (JavaScriptMessage msg) {
+          setState(() {
+            prediction = msg.message;
+          });
+          print("✅prediction=,$prediction");
+          if(prediction != '분류 중...'){
+            print(name);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                // builder: (context) => HtmlClassifierPage(imageFile: result!), // ✅ ! 사용으로 null 아님 보장, 싫험 페이지
+                builder: (context) => FinalWeb(imageFile: result!,  final_result: name,),
+              ),
+            );
+          }
+        },
+      );
+    _loadHtml();
+  }
+
+
   void pickImage()async{
     final File? selectedImage = await Navigator.push(context, MaterialPageRoute(builder:(context)=> ImageSelect()),);
     if (selectedImage != null) {
@@ -44,13 +82,35 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }
   }
-  void TimeImage(){
-    Timer.periodic(Duration(seconds: 30), (timer) {
-      setState(() {
-        pickImage();
-        print("1초마다 비교중");
-      });
-    });
+
+  Future<void> _loadHtml() async {
+    final htmlString = await rootBundle.loadString('assets/index.html');
+    _webViewController.loadHtmlString(htmlString);
+
+    _webViewController.setNavigationDelegate(
+      NavigationDelegate(
+        onPageFinished: (url) async {
+          // 이미지 전달 준비
+          if (result != null) {
+            final bytes = await result!.readAsBytes();
+            final base64Image = base64Encode(bytes);
+            final jsCode =
+                "loadImageFromFlutter('data:image/jpeg;base64,$base64Image')";
+
+            // 줄바꿈 제거 (JS 에러 방지)
+            final cleanBase64 = base64Image.replaceAll('\n', '').replaceAll('\r', '');
+
+            // JavaScript 함수 호출 (이미지 전달)
+            final jsCommand = 'loadImageFromFlutter("data:image/jpeg;base64,$cleanBase64");';
+
+            print("✅ JS 호출 준비됨: $jsCommand");
+            await _webViewController.runJavaScript(jsCommand);
+            print("✅ base64 길이: ${base64Image.length}");
+          }
+
+        },
+      ),
+    );
   }
 
 
@@ -108,13 +168,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               onPressed: (){
                                 print("FianlWeb 으로 이동 ");
                                 if (result != null) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      // builder: (context) => HtmlClassifierPage(imageFile: result!), // ✅ ! 사용으로 null 아님 보장, 싫험 페이지
-                                      builder: (context) => FinalWeb(imageFile: result!),
-                                    ),
-                                  );
+                                  _loadHtml();
                                 }else{
                                   showDialog(context: context, builder: (BuildContext ctx){
                                     return AlertDialog(
