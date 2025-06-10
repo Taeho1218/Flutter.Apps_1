@@ -41,7 +41,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-   File? result ;
+  File? result ;
   late final WebViewController _webViewController;
   String prediction = '분류 중...';
   late String name = prediction+'띠';
@@ -70,9 +70,12 @@ class _MyHomePageState extends State<MyHomePage> {
           }
         },
       );
-    _loadHtml();
+    // _loadHtml();
   }
 
+  // void waitResult() async{
+  //
+  // }
 
   void pickImage()async{
     final File? selectedImage = await Navigator.push(context, MaterialPageRoute(builder:(context)=> ImageSelect()),);
@@ -140,7 +143,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             onTap: (){
                               print("이미지 선택페이지로 이동");
                               pickImage();
-                              },
+                            },
                             child:   Stack(
                               children: [
                                 Image.asset(
@@ -152,10 +155,18 @@ class _MyHomePageState extends State<MyHomePage> {
                                     top:250 ,
                                     left: 100,
                                     child:
-                                    result != null
-                                        ? Image.file(result! ,width: 100, height: 100,)
-                                        : Image.asset('assets/images/img_mainSnake.jpg',width: 100, height: 100,)
+                                    SizedBox(
+                                        width: 100, height: 100,
+                                        child:
+                                          result != null
+                                            ? CircleAvatar(
+                                            backgroundImage: FileImage(result!)
+                                            )
+                                              :CircleAvatar(
+                                              backgroundImage:AssetImage('assets/images/img_mainSnake.jpg')
+                                          )
 
+                                    )
                                 ),
                               ],
                             ),
@@ -168,6 +179,12 @@ class _MyHomePageState extends State<MyHomePage> {
                               onPressed: (){
                                 print("FianlWeb 으로 이동 ");
                                 if (result != null) {
+                                  showDialog(context: context, builder: (BuildContext ctx){
+                                    return AlertDialog(
+                                      content: Text('잠시만 기다려 주세요! 닮은 동물을 찾는 중입니다 . . .'),
+                                    );
+                                  });
+
                                   _loadHtml();
                                 }else{
                                   showDialog(context: context, builder: (BuildContext ctx){
@@ -200,8 +217,8 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         )
     );
-    //   },
-    // );
+
+
   }
 
 }
