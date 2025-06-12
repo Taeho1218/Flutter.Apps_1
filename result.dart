@@ -185,46 +185,50 @@ class _FinalWebState extends State<FinalWeb> {
                 SizedBox(height: 20,),
                 Center(
                   child:
-                  Row(
-                    children: [
-                      SizedBox(width: 150,),
-
-                      Image.file(widget.imageFile! ,
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.cover,),//선택한 이미지들어갈 화면
-                      Text(animal_name),//닮은 꼴 이미지이름
+                  Column(
+                    children:[
+                      Row(
+                        children: [
+                          SizedBox(width:150),
+                          SizedBox(height: 50,width: 50,
+                              child:
+                              CircleAvatar(
+                                  backgroundImage: FileImage(widget.imageFile)
+                              )
+                          ), //선택한 이미지들어갈 화면
+                          Text(animal_name),//닮은 꼴 이미지이름
+                        ],
+                      ),
+                      SizedBox(height: 40,),
+                      Text(animal_story),
                     ],
-                  ),
-                ),
 
-                SizedBox(height: 40,),
-                Text(animal_story),
-                SizedBox(height: 10,),
+                  )
+                ),
                 ElevatedButton(
                     style: ElevatedButton.styleFrom(minimumSize: Size(200, 50) ),
                     onPressed: (){
                       print("FianlWeb 으로 이동 ");
-                        showDialog(context: context, builder: (BuildContext ctx){
-                          return AlertDialog(
-                            content: Text('처음 화면으로 돌아갈까요?'),
-                            actions: [
-                              Center(
-                                child: FloatingActionButton(
-                                    child: Text('네'),
-                                    onPressed:(){
-                                      Navigator.push(context, MaterialPageRoute(
-                                        builder: (context) {
-                                          return MyHomePage();
-                                        },
-                                      ));
-                                    }
-                                ),
+                      showDialog(context: context, builder: (BuildContext ctx){
+                        return AlertDialog(
+                          content: Text('처음 화면으로 돌아갈까요?'),
+                          actions: [
+                            Center(
+                              child: FloatingActionButton(
+                                  child: Text('네'),
+                                  onPressed:(){
+                                    Navigator.push(context, MaterialPageRoute(
+                                      builder: (context) {
+                                        return MyHomePage();
+                                      },
+                                    ));
+                                  }
+                              ),
 
-                              )
-                            ],
-                          );
-                        });
+                            )
+                          ],
+                        );
+                      });
 
                     },
                     child: Text("다시 하기")),
