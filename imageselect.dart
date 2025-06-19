@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:heif_converter/heif_converter.dart';
-import 'package:project_taeyoung/main.dart';
+import 'main.dart';
 import 'package:exif/exif.dart';
 import 'package:image/image.dart' as img;
 
@@ -27,36 +27,17 @@ class _ImageSelectState extends State<ImageSelect>{
     super.dispose();
   }
 
-  // Future<File> fixImageOrientation(File imageFile) async {
-  //   final bytes = await imageFile.readAsBytes();
-  //   final image = img.decodeImage(bytes);
-  //
-  //   if (image == null) return imageFile; // 디코딩 실패 시 원본 반환
-  //
-  //   final rotationDegree = await getImageRotationDegree(imageFile.path);
-  //
-  //   img.Image rotatedImage;
-  //   switch (rotationDegree) {
-  //     case 90:
-  //       rotatedImage = img.copyRotate(image, 90);
-  //       break;
-  //     case 180:
-  //       rotatedImage = img.copyRotate(image, 180);
-  //       break;
-  //     case 270:
-  //       rotatedImage = img.copyRotate(image, 270);
-  //       break;
-  //     default:
-  //       return imageFile;
-  //   }
-  //
-  //   // 새 파일로 저장 (임시 디렉토리)
-  //   final newPath = '${imageFile.parent.path}/fixed_${imageFile.uri.pathSegments.last}';
-  //   final newFile = File(newPath)..writeAsBytesSync(img.encodeJpg(rotatedImage));
-  //
-  //   return newFile;
-  // }
+  Future<File> rotateImage(String path) async {
+    final originalFile = File(path);
+    final imageBytes = await originalFile.readAsBytes();
+    final originalImage = img.decodeImage(imageBytes);
 
+    img.Image fixedImage;
+    fixedImage = img.copyRotate(originalImage!, angle: 90);// 90도 회전
+
+    final fixedFile = await originalFile.writeAsBytes(img.encodeJpg(fixedImage)); // JPG 형태로 File 저장
+    return fixedFile;
+  }
 
   void imagePressed() async {
     final pickedImage = await ImagePicker().pickImage(source: ImageSource.gallery); // await - 함수가 끝낳때 까지 기다림.
@@ -70,7 +51,8 @@ class _ImageSelectState extends State<ImageSelect>{
       if(imageFile.path.contains(target)){
         String? jpgPath = await HeifConverter.convert(imageFile.path,format: 'png');
         print(jpgPath);
-        imageFile = File(jpgPath!);
+
+        imageFile = await (rotateImage(jpgPath!));
       }Navigator.pop(context,imageFile);
 
       print(" 이미지가 메인으로 전송된 후 메인페이지로 돌아감");
