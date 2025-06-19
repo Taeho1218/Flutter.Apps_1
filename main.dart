@@ -14,7 +14,6 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 
-
 void main() {
   runApp(MyApp());
 }
@@ -128,8 +127,9 @@ class _MyHomePageState extends State<MyHomePage> {
               child : SingleChildScrollView(
                 child: Column(
                   children: [
+                    SizedBox(height: MediaQuery.of(context).size.height*0.05),
                     SizedBox(
-                      width: 400, height: 100,
+                      width: MediaQuery.of(context).size.width*1, height:MediaQuery.of(context).size.height*0.1,
                       child:                     Container(
                         child:Center(
                           child: Text("닮은꼴 운세 뽑기", style: TextStyle(fontSize: 40),),
@@ -149,22 +149,22 @@ class _MyHomePageState extends State<MyHomePage> {
                               children: [
                                 Image.asset(
                                   'assets/images/img_mainSnake.jpg',
-                                  width: 350,
-                                  height: 450,
+                                  width:  MediaQuery.of(context).size.width*1,
+                                  height:  MediaQuery.of(context).size.height*0.7,
                                   fit: BoxFit.cover,),
                                 Positioned(
-                                    top:250 ,
-                                    left: 100,
+                                    top:MediaQuery.of(context).size.height*0.32 ,
+                                    left: MediaQuery.of(context).size.width*0.28,
                                     child:
                                     SizedBox(
-                                        width: 100, height: 100,
+                                        width: MediaQuery.of(context).size.width*0.3, height: MediaQuery.of(context).size.height*0.3,
                                         child:
                                           result != null
                                             ? CircleAvatar(
                                             backgroundImage: FileImage(result!)
                                             )
                                               :CircleAvatar(
-                                              backgroundImage:AssetImage('assets/images/img_mainSnake.jpg')
+                                              backgroundImage:AssetImage('assets/images/blue.png')
                                           )
 
                                     )
@@ -174,7 +174,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
 
 
-                          SizedBox(height: 20,),
+                          SizedBox(height: MediaQuery.of(context).size.height*0.02),
                           ElevatedButton(
                               style: ElevatedButton.styleFrom(minimumSize: Size(200, 50) ),
                               onPressed: (){
