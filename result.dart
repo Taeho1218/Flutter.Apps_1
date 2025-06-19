@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:flutter/services.dart' show rootBundle;
-
+import 'test_main.dart';
 import 'main.dart';
 
 class FinalWeb extends StatefulWidget {
@@ -177,36 +177,47 @@ class _FinalWebState extends State<FinalWeb> {
           child: SingleChildScrollView(
             child:Column(
               children: [
-                SizedBox(height: 40,),
+                SizedBox(height: MediaQuery.of(context).size.height*0.05,),
                 Image.asset(animal_image,
-                  width: 300,
-                  height:300,
+                  width: MediaQuery.of(context).size.width*0.8,
+                  height: MediaQuery.of(context).size.height*0.35,
                   fit: BoxFit.cover,), //닮은 꼴 이미지 등록
-                SizedBox(height: 20,),
+                // SizedBox(height:MediaQuery.of(context).size.height*0.01,),
                 Center(
                   child:
                   Column(
                     children:[
-                      Row(
-                        children: [
-                          SizedBox(width:150),
-                          SizedBox(height: 50,width: 50,
-                              child:
-                              CircleAvatar(
-                                  backgroundImage: FileImage(widget.imageFile)
-                              )
-                          ), //선택한 이미지들어갈 화면
-                          Text(animal_name),//닮은 꼴 이미지이름
-                        ],
+                      Container(
+                        height:MediaQuery.of(context).size.height*0.12,width:MediaQuery.of(context).size.width*0.8,
+                        child:Row(
+                          children: [
+                            SizedBox(width:MediaQuery.of(context).size.width*0.2,),
+                            SizedBox(height:MediaQuery.of(context).size.height*0.11,width:MediaQuery.of(context).size.width*0.15,
+                                child:
+                                CircleAvatar(
+                                    backgroundImage: FileImage(widget.imageFile)
+                                )
+                            ), //선택한 이미지들어갈 화면
+                            SizedBox(width:MediaQuery.of(context).size.width*0.05),
+                            Text(animal_name),//닮은 꼴 이미지이름
+                          ],
+                        ),
                       ),
-                      SizedBox(height: 40,),
-                      Text(animal_story),
+
+                      // SizedBox(height:MediaQuery.of(context).size.height*0.01),
+                      Container(
+                        child:SizedBox(
+                            width:MediaQuery.of(context).size.width*0.8,height:MediaQuery.of(context).size.height*0.4,
+                          child: Text(animal_story),
+                        )
+                      )
+
                     ],
 
                   )
                 ),
                 ElevatedButton(
-                    style: ElevatedButton.styleFrom(minimumSize: Size(200, 50) ),
+                    style: ElevatedButton.styleFrom(minimumSize: Size(MediaQuery.of(context).size.width*0.4, MediaQuery.of(context).size.height*0.05) ),
                     onPressed: (){
                       print("FianlWeb 으로 이동 ");
                       showDialog(context: context, builder: (BuildContext ctx){
