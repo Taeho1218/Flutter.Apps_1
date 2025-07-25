@@ -1,236 +1,295 @@
-import 'dart:async';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:image_picker/image_picker.dart';
-import 'result.dart';
-import 'dart:io';
-import 'imageselect.dart';
-import 'test_result.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:tjt_project/firstpostcreate.dart';
+import 'postlist.dart';
+import 'register.dart';
+import 'bottomnavigate.dart';
+import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'firstpostcreate.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:flutter/services.dart';
+
+String? Token ;
+String? nickname;
+String? gender;
+String? age;
+String? university_name;
+String? user_id;
 
 
-void main() {
-  runApp(MyApp());
+var real = "$imgsend/api";
+var emul = "http://10.0.2.2:3000/api";
+var basic = "http://localhost:3000/api";
+var imgsend = 'http://35.216.37.60:443';
+
+
+IO.Socket socket = IO.io('http://localhost:3000', <String, dynamic>{
+  'transports': ['websocket'],
+  'autoConnect': false,
+});
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  // 로컬 저장소에서 토큰 값 불러오기
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  Token = prefs.getString('token'); // 'token' 키로 저장된 값을 불러옵니다.
+  print("저장된 토큰:$Token");
+  socket.connect();
+
+  // 불러온 값에 따라 초기 화면 결정
+  if (Token != null && Token!.isNotEmpty) {
+    // 토큰이 존재하고 비어있지 않으면 HomePage로 이동
+    var url = Uri.parse('$basic/auto-login'); // ← 서버 주소에 맞게 바꾸세요
+    var url_emul = Uri.parse("$emul/auto-login");
+    var url_real = Uri.parse("$real/auto-login");//에뮬레이터용
+    var response = await http.post(
+      //url,
+      // url_emul,
+      url_real,
+      headers: {'Content-Type': 'application/json','Authorization': 'Bearer $Token'},
+    );
+    var jsonResponse = jsonDecode(response.body);
+    bool checkPostExists = jsonResponse['postExists']?? false;
+    // String user_id = jsonResponse['userId'];
+    if (checkPostExists) {
+      print('토큰 확인, 유저확인완료: ${response.body}');
+      print(jsonResponse);
+      socket.emit('login', '$user_id');
+      print("소켓 이벤트 전송완료 $user_id");
+      runApp(MaterialApp(
+        home: BottomNaviagte(),
+      ));
+
+    } else if(checkPostExists ==false ){
+      print('게시물 작성한적 없는 유저: ${response.body}');
+      socket.emit('login', '$user_id');
+      print("소켓 이벤트 전송완료 $user_id");
+      runApp(MaterialApp(
+        home: FirstPostCreate(),
+      ));
+    }
+
+  } else {
+    // 토큰이 없거나 비어있으면 IntroPage (또는 로그인 페이지)로 이동
+    runApp(MyApp());
+  }
+
+
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatelessWidget{
   const MyApp({super.key});
 
   @override
 
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: MyHomePage(),
+      home: Login(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
 
+class Login extends StatefulWidget{
+  const Login({Key? key}) : super(key: key);
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State<Login> createState() => _LoginState();
 
 }
 
+class _LoginState extends State<Login>{
+  TextEditingController _idController = TextEditingController();
+  TextEditingController _pwController = TextEditingController();
+  var pass =0;
 
-class _MyHomePageState extends State<MyHomePage> {
 
-  File? result ;
-  late final WebViewController _webViewController;
-  String prediction = '분류 중...';
-  late String name = prediction+'띠';
 
-  @override
-  void initState() {
-    super.initState();
-    _webViewController = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..addJavaScriptChannel(
-        'ResultChannel',
-        onMessageReceived: (JavaScriptMessage msg) {
-          setState(() {
-            prediction = msg.message;
-          });
-          print("✅prediction=,$prediction");
-          if(prediction != '분류 중...'){
-            print(name);
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                // builder: (context) => HtmlClassifierPage(imageFile: result!), // ✅ ! 사용으로 null 아님 보장, 싫험 페이지
-                builder: (context) => FinalWeb(imageFile: result!,  final_result: name,),
-              ),
-            );
-          }
-        },
+  Future<void> saveStringToLocalStorage(String key, String value) async {
+    SharedPreferences TokenSaveLocal = await SharedPreferences.getInstance();
+    TokenSaveLocal.setString(key, value);
+  } //로컬에 저장하는 함수
+
+
+  Future<void> sendLoginData() async {
+    Map <String, String?> _logindata = {
+      'user_id' : _idController.text,
+      'user_pw': _pwController.text,
+    };
+    print("정보 보내기 실행중");
+    var url = Uri.parse('$basic/login'); // ← 서버 주소에 맞게 바꾸세요
+    var url_emul = Uri.parse("$emul/login"); //에뮬레이터용
+    var url_real = Uri.parse("$real/login");
+    try {
+      var response = await http.post(
+        url_real,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(_logindata),
       );
-    // _loadHtml();
-  }
+      var jsonResponse = jsonDecode(response.body);
+      bool checkPostExists = jsonResponse['postExists'];
 
-  // void waitResult() async{
-  //
-  // }
+      if (checkPostExists) {
+        print(' 유저확인완료: ${response.body}');
+        saveStringToLocalStorage("token", jsonResponse['token']);
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        Token = prefs.getString('token');
+        print("토큰값이 저장되었습니다${saveStringToLocalStorage(
+            "token", jsonResponse['token'])}");print("토큰값이 저장되었습니다${saveStringToLocalStorage(
+            "token", jsonResponse['token'])}");
+        print(jsonResponse);
+        socket.emit('login', '$user_id');
+        print("소켓 이벤트 전송완료 $user_id");
+        Navigator.of(context).pushReplacement( MaterialPageRoute(builder: (context) => BottomNaviagte()),);
 
-  void pickImage()async{
-    final File? selectedImage = await Navigator.push(context, MaterialPageRoute(builder:(context)=> ImageSelect()),);
-    if (selectedImage != null) {
-      setState(() {
-        result = selectedImage;  // ✅ 이미지 저장 후 화면 갱신
-      });
+      } else if(checkPostExists ==false ){
+        print('게시물 작성한적 없는 유저: ${response.body}');
+        saveStringToLocalStorage("token", jsonResponse['token']);
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        Token = prefs.getString('token');
+        print(Token);
+        socket.emit('login', '$user_id');
+        print("소켓 이벤트 전송완료 $user_id");
+        Navigator.of(context).push( MaterialPageRoute(builder: (context) => FirstPostCreate()),);
+      }
+    } catch (e) {
+      print('오류 발생: $e');
     }
   }
-
-  Future<void> _loadHtml() async {
-    final htmlString = await rootBundle.loadString('assets/index.html');
-    _webViewController.loadHtmlString(htmlString);
-
-    _webViewController.setNavigationDelegate(
-      NavigationDelegate(
-        onPageFinished: (url) async {
-          // 이미지 전달 준비
-          if (result != null) {
-            final bytes = await result!.readAsBytes();
-            final base64Image = base64Encode(bytes);
-            final jsCode =
-                "loadImageFromFlutter('data:image/jpeg;base64,$base64Image')";
-
-            // 줄바꿈 제거 (JS 에러 방지)
-            final cleanBase64 = base64Image.replaceAll('\n', '').replaceAll('\r', '');
-
-            // JavaScript 함수 호출 (이미지 전달)
-            final jsCommand = 'loadImageFromFlutter("data:image/jpeg;base64,$cleanBase64");';
-
-            print("✅ JS 호출 준비됨: $jsCommand");
-            await _webViewController.runJavaScript(jsCommand);
-            print("✅ base64 길이: ${base64Image.length}");
-          }
-
-        },
-      ),
-    );
-  }
-
-
   @override
+  Widget build(BuildContext){
+    return Scaffold(
 
+      body: Container(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              // padding:,
+              width:MediaQuery.of(context).size.width*0.8,
+              height:MediaQuery.of(context).size.height*0.3,
+              child: Column(
+                children: [
+                  Image.asset(
+                      width: 200,
+                      height: 150,
+                      'assets/images/logo.jpg'),
+                  Text(
+                      "Log In"
+                  ),
+                ],
+              ),
+            ),  //로고 보이는 곳
 
-  Widget build(BuildContext context) {
-    return MaterialApp(
-        home: Scaffold(
-          body: Container(
-              child : SingleChildScrollView(
-                child: Column(
-                  children: [
-                    SizedBox(height: MediaQuery.of(context).size.height*0.05),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width*1, height:MediaQuery.of(context).size.height*0.1,
-                      child:                     Container(
-                        child:Center(
-                          child: Text("닮은꼴 운세 뽑기", style: TextStyle(fontSize: 40),),
+            Container(
+              width:MediaQuery.of(context).size.width,
+              height:MediaQuery.of(context).size.height*0.2,
+              child:Row(
+                children:[
+                  Column(
+                      children:[
+                        Container(
+                          width: MediaQuery.of(context).size.width*0.65,
+                          height: MediaQuery.of(context).size.height*0.1,
+                          child: Row(
+                              children:[
+                                Text("ID"),
+                                Expanded(child:  TextField(
+                                  decoration: InputDecoration(
+
+                                      border: OutlineInputBorder(),
+                                      labelText: '아이디를 입력해주세요'
+                                  ),
+                                    keyboardType:  TextInputType.text,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                              ],
+                                  controller:_idController,
+
+                                ),),
+
+                              ]
+                          ),
+                        ),
+                        Container(
+                          width: MediaQuery.of(context).size.width*0.65,
+                          height: MediaQuery.of(context).size.height*0.1,
+                          child:  Row(
+                              children:[
+                                Text("PW"),
+                                Expanded(child:   TextField(
+                                  decoration: InputDecoration(
+                                      border: OutlineInputBorder(),
+                                      labelText: '비밀번호를 입력하세요',
+                                  ),
+                                  keyboardType:  TextInputType.text,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                                  ],
+                                  obscureText: true,
+                                  controller:_pwController,
+                                ),),
+
+                              ]
+                          ),
+                        ),
+                      ]
+                  ), //아이디 비밀번호쓰는 칸
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width*0.05,
+                  ),
+                  Container(
+                    width: MediaQuery.of(context).size.width*0.25,
+                    height: MediaQuery.of(context).size.height*0.1,
+                    child: ElevatedButton(
+
+                      onPressed:(){
+                        // 아이디와 비밀 번호 비교후 리스트 피이지로 이동, 제이슨 객체형태로 보냄.
+                        print("버튼누름");
+                        sendLoginData();
+
+                      },
+                      child: Text('로그인',
+                        style: TextStyle(
+                          fontSize: 12
                         ),
                       ),
-
                     ),
-                    Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          InkWell(
-                            onTap: (){
-                              print("이미지 선택페이지로 이동");
-                              pickImage();
-                            },
-                            child:   Stack(
-                              children: [
-                                Image.asset(
-                                  'assets/images/img_mainSnake.jpg',
-                                  width:  MediaQuery.of(context).size.width*1,
-                                  height:  MediaQuery.of(context).size.height*0.7,
-                                  fit: BoxFit.cover,),
-                                Positioned(
-                                    top:MediaQuery.of(context).size.height*0.32 ,
-                                    left: MediaQuery.of(context).size.width*0.28,
-                                    child:
-                                    SizedBox(
-                                        width: MediaQuery.of(context).size.width*0.3, height: MediaQuery.of(context).size.height*0.3,
-                                        child:
-                                          result != null
-                                            ? CircleAvatar(
-                                            backgroundImage: FileImage(result!)
-                                            )
-                                              :CircleAvatar(
-                                              backgroundImage:AssetImage('assets/images/blue.png')
-                                          )
+                  ),  // 로그인 버튼
+                ],
+              ),
+            ),  //아이디 로그인 적고 버튼을 눌러 로그인 하는 곳
+            Container(
+              width:MediaQuery.of(context).size.width*0.8,
+              height:MediaQuery.of(context).size.height*0.2,
+              child: Row(
+                children:[
+                  ElevatedButton(
+                    onPressed:(){
+                      //회원 가입 페이지로 이동
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => const Register()),
+                      );
 
-                                    )
-                                ),
-                              ],
-                            ),
-                          ),
+                    },
+                    child: Text('회원가입'),
+                  ),  //회원가입 버튼
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width*0.04,
+                  ),
 
+                  ElevatedButton(
+                    onPressed:(){},
+                    child: Text('비밀번호 찾기'),
+                  ),  //비밀번호 찾기 버튼
+                ],
 
-                          SizedBox(height: MediaQuery.of(context).size.height*0.02),
-                          ElevatedButton(
-                              style: ElevatedButton.styleFrom(minimumSize: Size(200, 50) ),
-                              onPressed: (){
-                                print("FianlWeb 으로 이동 ");
-                                if (result != null) {
-                                  showDialog(context: context, builder: (BuildContext ctx){
-                                    return AlertDialog(
-                                      content: Container( height: 250,
-                                        child: Column(
-                                          children: [
-                                            Text('잠시만 기다려 주세요! 닮은 동물을 찾는 중입니다 . . .'),
-                                            SizedBox(height: 30),
-                                            Image.asset('assets/images/alert_snake.png',
-                                              width: 200,
-                                              height: 150,
-                                              fit: BoxFit.cover,)
-                                            ]
-                                        )
-                                      )
-                                    );
-                                  });
+              ),
+            ),  //회원가입과 비밀번호 찾기로 이동하는곳
 
-                                  _loadHtml();
-                                }else{
-                                  showDialog(context: context, builder: (BuildContext ctx){
-                                    return AlertDialog(
-                                      content: Text('사진을 선택해 주세요'),
-                                      actions: [
-                                        Center(
-                                          child: FloatingActionButton(
-                                              child: Text('네'),
-                                              onPressed:(){
-                                                Navigator.of(context).pop();
-                                              }
-                                          ),
-
-                                        )
-                                      ],
-                                    );
-                                  });
-                                }
-                              },
-                              child: Text("결과 보기")),
-                        ]
-                    ),
-
-
-                  ],
-                ),
-              )
-
-          ),
-        )
+          ],
+        ),
+      ) ,
     );
-
-
   }
-
 }
